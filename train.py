@@ -29,6 +29,8 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.optim import lr_scheduler
 from torch.utils.data import DataLoader
+import ipdb 
+st = ipdb.set_trace
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = BASE_DIR
@@ -138,10 +140,10 @@ else:
     print('Unknown dataset %s. Exiting...'%(FLAGS.dataset))
     exit(-1)
 print(len(TRAIN_DATASET), len(TEST_DATASET))
-TRAIN_DATALOADER = DataLoader(TRAIN_DATASET, batch_size=BATCH_SIZE,
-    shuffle=True, num_workers=4, worker_init_fn=my_worker_init_fn)
-TEST_DATALOADER = DataLoader(TEST_DATASET, batch_size=BATCH_SIZE,
-    shuffle=True, num_workers=4, worker_init_fn=my_worker_init_fn)
+TRAIN_DATALOADER = DataLoader(TRAIN_DATASET, batch_size=1,
+    shuffle=True, num_workers=1, worker_init_fn=my_worker_init_fn)
+TEST_DATALOADER = DataLoader(TRAIN_DATASET, batch_size=1,
+    shuffle=True, num_workers=1, worker_init_fn=my_worker_init_fn)
 print(len(TRAIN_DATALOADER), len(TEST_DATALOADER))
 
 # Init the model and optimzier
@@ -153,7 +155,7 @@ if FLAGS.model == 'boxnet':
     Detector = MODEL.BoxNet
 else:
     Detector = MODEL.VoteNet
-
+# st()
 net = Detector(num_class=DATASET_CONFIG.num_class,
                num_heading_bin=DATASET_CONFIG.num_heading_bin,
                num_size_cluster=DATASET_CONFIG.num_size_cluster,
@@ -233,6 +235,7 @@ def train_one_epoch():
         for key in batch_data_label:
             assert(key not in end_points)
             end_points[key] = batch_data_label[key]
+        # st()
         loss, end_points = criterion(end_points, DATASET_CONFIG)
         loss.backward()
         optimizer.step()

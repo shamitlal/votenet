@@ -14,8 +14,11 @@ ROOT_DIR = os.path.dirname(BASE_DIR)
 sys.path.append(os.path.join(ROOT_DIR, 'pointnet2'))
 from pointnet2_modules import PointnetSAModuleVotes
 import pointnet2_utils
+import ipdb 
+st = ipdb.set_trace
 
 def decode_scores(net, end_points, num_class, num_heading_bin, num_size_cluster, mean_size_arr):
+    # st()
     net_transposed = net.transpose(2,1) # (batch_size, 1024, ..)
     batch_size = net_transposed.shape[0]
     num_proposal = net_transposed.shape[1]
@@ -83,6 +86,7 @@ class ProposalModule(nn.Module):
         Returns:
             scores: (B,num_proposal,2+3+NH*2+NS*4) 
         """
+        # st()
         if self.sampling == 'vote_fps':
             # Farthest point sampling (FPS) on votes
             xyz, features, fps_inds = self.vote_aggregation(xyz, features)

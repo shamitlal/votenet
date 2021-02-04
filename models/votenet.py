@@ -21,7 +21,8 @@ from voting_module import VotingModule
 from proposal_module import ProposalModule
 from dump_helper import dump_results
 from loss_helper import get_loss
-
+import ipdb 
+st = ipdb.set_trace
 
 class VoteNet(nn.Module):
     r"""
@@ -50,6 +51,7 @@ class VoteNet(nn.Module):
         self.num_heading_bin = num_heading_bin
         self.num_size_cluster = num_size_cluster
         self.mean_size_arr = mean_size_arr
+        # st()
         assert(mean_size_arr.shape[0] == self.num_size_cluster)
         self.input_feature_dim = input_feature_dim
         self.num_proposal = num_proposal
@@ -105,36 +107,39 @@ class VoteNet(nn.Module):
 
 
 if __name__=='__main__':
-    sys.path.append(os.path.join(ROOT_DIR, 'sunrgbd'))
-    from sunrgbd_detection_dataset import SunrgbdDetectionVotesDataset, DC
+    sys.path.append(os.path.join(ROOT_DIR, 'scannet'))
+    # from sunrgbd_detection_dataset import SunrgbdDetectionVotesDataset, DC
+    from scannet_detection_dataset import ScannetDetectionDataset, DC
     from loss_helper import get_loss
 
     # Define model
     model = VoteNet(10,12,10,np.random.random((10,3))).cuda()
     
-    try:
-        # Define dataset
-        TRAIN_DATASET = SunrgbdDetectionVotesDataset('train', num_points=20000, use_v1=True)
+    # try:
+    # Define dataset
+    # TRAIN_DATASET = ScannetDetectionDataset('train', num_points=20000, use_v1=True)
+    TRAIN_DATASET = ScannetDetectionDataset('train', num_points=20000)
 
-        # Model forward pass
-        sample = TRAIN_DATASET[5]
-        inputs = {'point_clouds': torch.from_numpy(sample['point_clouds']).unsqueeze(0).cuda()}
-    except:
-        print('Dataset has not been prepared. Use a random sample.')
-        inputs = {'point_clouds': torch.rand((20000,3)).unsqueeze(0).cuda()}
+    # Model forward pass
+    sample = TRAIN_DATASET[0]
+    inputs = {'point_clouds': torch.from_numpy(sample['point_clouds']).unsqueeze(0).cuda()}
+    # except:
+    #     print('Dataset has not been prepared. Use a random sample.')
+    #     inputs = {'point_clouds': torch.rand((20000,3)).unsqueeze(0).cuda()}
 
     end_points = model(inputs)
     for key in end_points:
-        print(key, end_points[key])
+        print(key, end_points[key].shape)
 
-    try:
-        # Compute loss
-        for key in sample:
-            end_points[key] = torch.from_numpy(sample[key]).unsqueeze(0).cuda()
-        loss, end_points = get_loss(end_points, DC)
-        print('loss', loss)
-        end_points['point_clouds'] = inputs['point_clouds']
-        end_points['pred_mask'] = np.ones((1,128))
-        dump_results(end_points, 'tmp', DC)
-    except:
-        print('Dataset has not been prepared. Skip loss and dump.')
+    # try:
+    # Compute loss
+    for key in sample:
+        end_points[key] = torch.from_numpy(sample[key]).unsqueeze(0).cuda()
+    # st()
+    loss, end_points = get_loss(end_points, DC)
+    print('loss', loss)
+    end_points['point_clouds'] = inputs['point_clouds']
+    end_points['pred_mask'] = np.ones((1,128))
+    dump_results(end_points, 'tmp', DC)
+    # except:
+    #     print('Dataset has not been prepared. Skip loss and dump.')

@@ -18,7 +18,8 @@ sys.path.append(ROOT_DIR)
 sys.path.append(os.path.join(ROOT_DIR, 'utils'))
 import pc_util
 from model_util_scannet import rotate_aligned_boxes
-
+import ipdb 
+st = ipdb.set_trace
 from model_util_scannet import ScannetDatasetConfig
 DC = ScannetDatasetConfig()
 MAX_NUM_OBJ = 64
@@ -48,7 +49,7 @@ class ScannetDetectionDataset(Dataset):
         else:
             print('illegal split name')
             return
-        
+
         self.num_points = num_points
         self.use_color = use_color        
         self.use_height = use_height
@@ -136,6 +137,7 @@ class ScannetDetectionDataset(Dataset):
         # from the points sharing the same instance label. 
         point_votes = np.zeros([self.num_points, 3])
         point_votes_mask = np.zeros(self.num_points)
+        # st()
         for i_instance in np.unique(instance_labels):            
             # find all points belong to that instance
             ind = np.where(instance_labels == i_instance)[0]
@@ -145,8 +147,12 @@ class ScannetDetectionDataset(Dataset):
                 center = 0.5*(x.min(0) + x.max(0))
                 point_votes[ind, :] = center - x
                 point_votes_mask[ind] = 1.0
+        '''
+        ipdb> point_votes[3557]
+        array([ 0.07752836,  0.40350217, -0.59910458,  0.07752836,  0.40350217,
+            -0.59910458,  0.07752836,  0.40350217, -0.59910458])
+        '''
         point_votes = np.tile(point_votes, (1, 3)) # make 3 votes identical 
-        
         class_ind = [np.where(DC.nyu40ids == x)[0][0] for x in instance_bboxes[:,-1]]   
         # NOTE: set size class as semantic class. Consider use size2class.
         size_classes[0:instance_bboxes.shape[0]] = class_ind
@@ -154,6 +160,7 @@ class ScannetDetectionDataset(Dataset):
             target_bboxes[0:instance_bboxes.shape[0], 3:6] - DC.mean_size_arr[class_ind,:]
             
         ret_dict = {}
+        # st()
         ret_dict['point_clouds'] = point_cloud.astype(np.float32)
         ret_dict['center_label'] = target_bboxes.astype(np.float32)[:,0:3]
         ret_dict['heading_class_label'] = angle_classes.astype(np.int64)
@@ -169,6 +176,7 @@ class ScannetDetectionDataset(Dataset):
         ret_dict['vote_label_mask'] = point_votes_mask.astype(np.int64)
         ret_dict['scan_idx'] = np.array(idx).astype(np.int64)
         ret_dict['pcl_color'] = pcl_color
+        # st()
         return ret_dict
         
 ############# Visualizaion ########

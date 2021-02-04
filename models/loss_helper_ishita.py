@@ -12,12 +12,14 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(BASE_DIR)
 sys.path.append(os.path.join(ROOT_DIR, 'utils'))
 from nn_distance import nn_distance, huber_loss
-import ipdb 
-st = ipdb.set_trace
+
 FAR_THRESHOLD = 0.6
 NEAR_THRESHOLD = 0.3
 GT_VOTE_FACTOR = 3 # number of GT votes per point
 OBJECTNESS_CLS_WEIGHTS = [0.2,0.8] # put larger weights on positive objectness
+
+import ipdb
+st = ipdb.set_trace
 
 def compute_vote_loss(end_points):
     """ Compute vote loss: Match predicted votes to GT votes.
@@ -39,6 +41,8 @@ def compute_vote_loss(end_points):
         Then the loss for this seed point is:
             min(d(v_i,c_j)) for i=1,2,3 and j=1,2,3
     """
+    
+    # st()
 
     # Load ground truth votes and assign them to seed points
     batch_size = end_points['seed_xyz'].shape[0]
@@ -79,6 +83,9 @@ def compute_objectness_loss(end_points):
         object_assignment: (batch_size, num_seed) Tensor with long int
             within [0,num_gt_object-1]
     """ 
+    
+    # st()
+    
     # Associate proposal and GT objects by point-to-point distances
     aggregated_vote_xyz = end_points['aggregated_vote_xyz']
     gt_center = end_points['center_label'][:,:,0:3]
@@ -123,6 +130,8 @@ def compute_box_and_sem_cls_loss(end_points, config):
         sem_cls_loss
     """
 
+    # st()
+    
     num_heading_bin = config.num_heading_bin
     num_size_cluster = config.num_size_cluster
     num_class = config.num_class
@@ -166,11 +175,10 @@ def compute_box_and_sem_cls_loss(end_points, config):
 
     size_residual_label = torch.gather(end_points['size_residual_label'], 1, object_assignment.unsqueeze(-1).repeat(1,1,3)) # select (B,K,3) from (B,K2,3)
     size_label_one_hot = torch.cuda.FloatTensor(batch_size, size_class_label.shape[1], num_size_cluster).zero_()
-    st()
     size_label_one_hot.scatter_(2, size_class_label.unsqueeze(-1), 1) # src==1 so it's *one-hot* (B,K,num_size_cluster)
     size_label_one_hot_tiled = size_label_one_hot.unsqueeze(-1).repeat(1,1,1,3) # (B,K,num_size_cluster,3)
-    # st()
     predicted_size_residual_normalized = torch.sum(end_points['size_residuals_normalized']*size_label_one_hot_tiled, 2) # (B,K,3)
+
     mean_size_arr_expanded = torch.from_numpy(mean_size_arr.astype(np.float32)).cuda().unsqueeze(0).unsqueeze(0) # (1,1,num_size_cluster,3) 
     mean_size_label = torch.sum(size_label_one_hot_tiled * mean_size_arr_expanded, 2) # (B,K,3)
     size_residual_label_normalized = size_residual_label / mean_size_label # (B,K,3)
@@ -209,6 +217,8 @@ def get_loss(end_points, config):
         end_points: dict
     """
 
+    # st()
+    
     # Vote loss
     vote_loss = compute_vote_loss(end_points)
     end_points['vote_loss'] = vote_loss

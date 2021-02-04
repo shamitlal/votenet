@@ -109,7 +109,7 @@ class Pointnet2Backbone(nn.Module):
         end_points['sa1_inds'] = fps_inds
         end_points['sa1_xyz'] = xyz
         end_points['sa1_features'] = features
-
+        # st()
         xyz, features, fps_inds = self.sa2(xyz, features) # this fps_inds is just 0,1,...,1023
         end_points['sa2_inds'] = fps_inds
         end_points['sa2_xyz'] = xyz
@@ -123,6 +123,7 @@ class Pointnet2Backbone(nn.Module):
         end_points['sa4_xyz'] = xyz
         end_points['sa4_features'] = features
 
+        # st()
         # --------- 2 FEATURE UPSAMPLING LAYERS --------
         features = self.fp1(end_points['sa3_xyz'], end_points['sa4_xyz'], end_points['sa3_features'], end_points['sa4_features'])
         features = self.fp2(end_points['sa2_xyz'], end_points['sa3_xyz'], end_points['sa2_features'], features)
@@ -134,6 +135,8 @@ class Pointnet2Backbone(nn.Module):
 
 
 if __name__=='__main__':
+    import ipdb 
+    st = ipdb.set_trace
     backbone_net = Pointnet2Backbone(input_feature_dim=3).cuda()
     print(backbone_net)
     backbone_net.eval()

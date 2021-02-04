@@ -22,7 +22,8 @@ import pointnet2_utils
 import pytorch_utils as pt_utils
 from typing import List
 
-
+import ipdb 
+st = ipdb.set_trace
 class _PointnetSAModuleBase(nn.Module):
 
     def __init__(self):
@@ -181,7 +182,7 @@ class PointnetSAModuleVotes(nn.Module):
             ret_unique_cnt: bool = False
     ):
         super().__init__()
-
+        # st()
         self.npoint = npoint
         self.radius = radius
         self.nsample = nsample
